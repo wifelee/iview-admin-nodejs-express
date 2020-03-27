@@ -6,7 +6,7 @@ package-lock.json
 
 /tests/e2e/videos/
 /tests/e2e/screenshots/
-/kunchen-admin/node_modules
+/kunchen-admin
 # local env files
 .env.local
 .env.*.local
