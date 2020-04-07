@@ -8,7 +8,8 @@ var AdminSchema = mongoose.Schema({
          return bcrypt.hashSync(val,10)
       }},
   mobile:String,
-  real_name:String
+  real_name:String,
+  access:Array,
 });
 
 var AdminModel= mongoose.model('admins', AdminSchema);//表名

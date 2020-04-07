@@ -18,6 +18,8 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
+var AdminModel = require('./schema/adminSchema')
+
 //跨域
 app.use(cors())
 
@@ -50,14 +52,14 @@ app.use('/api', async (req, res, next) => {
       message:'请先登录'
     })
   }
-  const {id} = jwt.verify(token, 'screct')
+  const {id} = jwt.verify(token, process.env.JWT_SCRECT)
   if (!id)//校验解密信息
   {
     res.status(401).send({
       message:'请先登录'
     })
   }
-  const user =await AdminUser.findById(id)
+  const user =await AdminModel.findById(id)
     if (!user)//校验用户是否存在
   {
     res.status(401).send({

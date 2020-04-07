@@ -8,11 +8,19 @@ var jwt = require('jsonwebtoken')
  */
 exports.register = async (req, res) => {
     // 根据用户名找用户
-    const name = await AdminModel.findOne({name: req.body.name});
-    if(name)
+    const user = await AdminModel.findOne({name: req.body.name});
+    if(user)
     {
-       return  res.status(501).send({
-            message:'管理员已存在，请直接登录'
+        const result = await user.updateOne({
+        name: req.body.name,
+        password:req.body.password,
+        real_name:req.body.real_name,
+        mobile:req.body.mobile,
+        access:req.body.access
+        })
+       return res.status(200).send({
+        message:'更新成功',
+        data:result
         })
     }
     //存进数据库
@@ -20,7 +28,8 @@ exports.register = async (req, res) => {
         name: req.body.name,
         password:req.body.password,
         real_name:req.body.real_name,
-        mobile:req.body.mobile
+        mobile:req.body.mobile,
+        access:req.body.access
     })
 
     //返回token
@@ -70,5 +79,60 @@ exports.login = async (req, res) => {
 exports.test = (req, res) => {
     res.json({
         message: 'oop~'
+    })
+}
+/**
+ * 管理员列表
+ * @param req
+ * @param res
+ * @returns {Promise<void>}
+ */
+exports.adminList = async (req, res) => {
+    const page = parseInt(req.body.p || 0) * 10;
+    const count = await AdminModel.count();
+    const user = await AdminModel.find().select(['name','mobile','real_name','access']).limit(10).skip(page);
+    res.status(200).send(
+        {
+            count:count,
+            data:user.map(v =>
+        {
+            return{
+                username:v.name,
+                mobile:v.mobile,
+                realName:v.real_name,
+                access:v.access,
+                id:v._id
+            }
+        })
+        }
+    )
+}
+/**
+ * 删除管理员
+ * @param req
+ * @param res
+ * @returns {Promise<void>}
+ */
+exports.deleteAdmin = async (req, res) => {
+    //先判断是否现在登录的管理员
+    const token = String(req.headers.authorization || '').split(' ').pop();
+    const id = req.body.id;
+    if(jwt.verify(token, process.env.JWT_SCRECT).id === id)
+    {
+        return  res.status(202).send({
+            message:'当前管理员正在登录'
+        })
+    }
+
+    const user = await AdminModel.findById(id)
+    if(!user)
+    {
+       return  res.status(202).send({
+            message:'数据有误！'
+        })
+    }
+    const result = await  user.deleteOne({_id:id})
+    res.status(200).send({
+        message:'删除成功'
     })
 }
