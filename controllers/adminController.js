@@ -1,5 +1,5 @@
 var AdminModel = require('../schema/adminSchema')
-var bcrypt = require('bcrypt')
+var bcrypt = require('bcryptjs')
 var jwt = require('jsonwebtoken')
 /**
  * 注册
