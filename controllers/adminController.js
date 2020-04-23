@@ -1,6 +1,13 @@
 var AdminModel = require('../schema/adminSchema')
 var bcrypt = require('bcryptjs')
 var jwt = require('jsonwebtoken')
+let qiniu = require('qiniu');
+
+let config = {
+    "AK": "OdQtCSapzhBdei-847uTeO_2iA70TBXg469YmeRp",
+    "SK": "F1hX7oY0nczxejf37DxLKVVLXmjO4AvktaTiDRys",
+    "Bucket": "taipingeasy"
+}
 /**
  * 注册
  * @param req
@@ -134,5 +141,26 @@ exports.deleteAdmin = async (req, res) => {
     const result = await  user.deleteOne({_id:id})
     res.status(200).send({
         message:'删除成功'
+    })
+}
+/**
+ * 获取七牛云token
+ */
+exports.getToken = (req, res) => {
+    let mac = new qiniu.auth.digest.Mac(config.AK, config.SK);
+    let options = {
+        scope: config.Bucket,
+        expires: 3600 * 24
+    };
+    let putPolicy = new qiniu.rs.PutPolicy(options);
+    let uploadToken = putPolicy.uploadToken(mac);
+    if (!uploadToken) {
+        return res.status(500).send({
+            message:'请求超时'
+        })
+
+    }
+    res.status(200).send({
+        token:uploadToken
     })
 }
