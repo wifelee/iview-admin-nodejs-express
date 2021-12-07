@@ -2,9 +2,9 @@
 var ScrapyModel = require('../schema/scrapySchema')
 var StandarsModel = require('../schema/standarSchema')
 var xlsx =  require('node-xlsx');
-var superagent = require('superagent');
-var cheerio = require('cheerio');
-const defaultUrl = 'http://bid.9to.com/list.php/catid-234';
+// var superagent = require('superagent');
+// var cheerio = require('cheerio');
+// const defaultUrl = 'http://bid.9to.com/list.php/catid-234';
 // exports.index = async (req, respond) => {
 //     var targetUrl = defaultUrl;
 //     for (var i=0; i<10; i++){
