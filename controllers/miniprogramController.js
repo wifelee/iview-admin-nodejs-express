@@ -1,6 +1,6 @@
 const https = require('https');
 var jwt = require('jsonwebtoken')
-var miniUserModel = require('../schema/MiniprogramSchema')
+var miniUserModel = require('../schema/miniprogramSchema')
 var homework = require('../schema/homeworkRecordSchema')
 
 //测试接口
