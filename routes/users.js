@@ -1,8 +1,12 @@
 var express = require('express');
 var router = express.Router();
+/**
+ * 相应的controller
+ */
 const userController = require('../controllers/userController')
 const adminController = require('../controllers/adminController')
-/* GET users listing. */
+const miniprogramController = require('../controllers/miniprogramController')
+
 
 router.get('/', userController.add);
 
@@ -11,6 +15,13 @@ router.get('/', userController.add);
  */
 router.post('/register', adminController.register);
 router.post('/login', adminController.login);
-
-
+/**
+ * 小程序登录
+ */
+router.post('/mini/login', miniprogramController.getCode);
+router.post('/mini/saveUserInfo', miniprogramController.saveUserInfo);
+router.post('/mini/getUserInfo', miniprogramController.getUserInfo);
+router.post('/mini/addHomework', miniprogramController.addHomework);
+router.post('/mini/getHomework', miniprogramController.getHomework);
+router.post('/mini/submitHomework', miniprogramController.submitHomework);
 module.exports = router;

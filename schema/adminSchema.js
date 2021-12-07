@@ -9,6 +9,7 @@ var AdminSchema = mongoose.Schema({
       }},
   mobile:String,
   real_name:String,
+    role:String,
   access:Array,
 });
 

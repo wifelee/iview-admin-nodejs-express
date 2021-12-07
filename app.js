@@ -28,6 +28,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+
+
 //前台
 app.use('/' , express.static(path.join(__dirname, 'client/dist')));
 //后台管理页面
@@ -42,7 +44,7 @@ db.once('open', function() {
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-
+app.use('/scrapy/api',apiRouter)
 
 app.use('/api', async (req, res, next) => {
   const token = String(req.headers.authorization || '').split(' ').pop();

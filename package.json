@@ -19,7 +19,12 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.5",
     "morgan": "~1.9.1",
+    "node-xlsx": "^0.17.2",
     "pug": "2.0.0-beta11",
     "qiniu": "^7.3.0"
+  },
+  "devDependencies": {
+    "express-http-proxy": "^1.6.2",
+    "http-proxy-middleware": "^1.1.0"
   }
 }
