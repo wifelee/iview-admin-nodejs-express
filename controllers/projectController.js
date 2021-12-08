@@ -20,6 +20,21 @@ exports.projectAdd = async (req, res) => {
     if(!req.body.type) return res.status(500).send({
         message:'科室类别不能为空'
     })
+    if(req.body.id) {
+        const item = await projectModel.findOne({_id: req.body.id});
+        if(item)
+        {
+            const result = await projectModel.updateOne({
+                name: req.body.name,
+                type:req.body.type
+            })
+            return res.status(200).send({
+                message:'更新成功',
+                data:result
+            })
+        }
+    }
+    
     //存进数据库
     const result = await projectModel.create({
         name: req.body.name,
