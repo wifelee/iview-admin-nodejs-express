@@ -52,7 +52,12 @@ var xlsx =  require('node-xlsx');
 
 exports.index = async (req, respond) => {
   const workSheetsFromFile = xlsx.parse(`${__dirname}/data.xls`);
-  console.log(workSheetsFromFile)
+ return       respond.status(200).send({
+     message:'成功',
+     data:{
+         workSheetsFromFile
+     }
+ })
   const arr1 = []
   const arr2 = []
   const arr3 = []

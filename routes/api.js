@@ -22,8 +22,9 @@ router.post('/admin/deleteAdmin', adminController.deleteAdmin)
 router.post('/admin/getUploadToken', adminController.getToken)
 
 
-
-
+router.post('/admin/role/add', adminController.addRole)
+router.post('/admin/role/delete', adminController.delRole)
+router.post('/admin/role/list', adminController.roleList)
 
 /* miniprogram. */
 router.post('/mini/test', miniprogramController.test)

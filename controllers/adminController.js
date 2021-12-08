@@ -1,4 +1,5 @@
 var AdminModel = require('../schema/adminSchema')
+var RoleModel = require('../schema/roleSchema')
 var bcrypt = require('bcryptjs')
 var jwt = require('jsonwebtoken')
 let qiniu = require('qiniu');
@@ -15,7 +16,7 @@ let config = {
  */
 exports.register = async (req, res) => {
     // 根据用户名找用户
-    const user = await AdminModel.findOne({name: req.body.name});
+    const user = await AdminModel.findOne({mobile: req.body.mobile});
     if(user)
     {
         const result = await user.updateOne({
@@ -23,6 +24,7 @@ exports.register = async (req, res) => {
         password:req.body.password,
         real_name:req.body.real_name,
         mobile:req.body.mobile,
+            role:req.body.role,
         access:req.body.access
         })
        return res.status(200).send({
@@ -36,6 +38,7 @@ exports.register = async (req, res) => {
         password:req.body.password,
         real_name:req.body.real_name,
         mobile:req.body.mobile,
+        role:req.body.role,
         access:req.body.access
     })
 
@@ -53,7 +56,7 @@ exports.register = async (req, res) => {
  */
 exports.login = async (req, res) => {
     // 根据用户名找用户
-    const user = await AdminModel.findOne({name: req.body.name});
+    const user = await AdminModel.findOne({mobile: req.body.name});
     if( !user )
     {
         return res.status(401).send({
@@ -97,7 +100,7 @@ exports.test = (req, res) => {
 exports.adminList = async (req, res) => {
     const page = parseInt(req.body.p || 0) * 10;
     const count = await AdminModel.count();
-    const user = await AdminModel.find().select(['name','mobile','real_name','access']).limit(10).skip(page);
+    const user = await AdminModel.find().select(['name','mobile','real_name','access','role','created_at']).limit(10).skip(page);
     res.status(200).send(
         {
             count:count,
@@ -108,6 +111,8 @@ exports.adminList = async (req, res) => {
                 mobile:v.mobile,
                 realName:v.real_name,
                 access:v.access,
+                role:v.role,
+                created_at:v.created_at,
                 id:v._id
             }
         })
@@ -163,4 +168,78 @@ exports.getToken = (req, res) => {
     res.status(200).send({
         token:uploadToken
     })
+}
+
+/**
+ * 新增角色
+ * @param req
+ * @param res
+ */
+exports.addRole = async (req, res) => {
+    console.log(req.body.id)
+    // 根据用户名找用户
+    if(req.body.id) {
+        const user = await RoleModel.findOne({_id: req.body.id});
+        if(user)
+        {
+            const result = await user.updateOne({
+                name: req.body.name,
+                access:req.body.access
+            })
+            return res.status(200).send({
+                message:'更新成功',
+                data:result
+            })
+        }
+    }
+
+    //存进数据库
+    const result = await RoleModel.create({
+        name: req.body.name,
+        access:req.body.access
+    })
+
+    //返回token
+    res.status(200).send({
+        message:'创建成功',
+        data:result
+    })
+}
+/**
+ * 删除角色
+ * @param req
+ * @param res
+ * @returns {Promise<void>}
+ */
+exports.delRole = async (req, res) => {
+    const id = req.body.id;
+
+    const user = await RoleModel.findById(id)
+    if(!user)
+    {
+        return  res.status(202).send({
+            message:'数据有误！'
+        })
+    }
+    const result = await user.deleteOne({_id:id})
+    res.status(200).send({
+        message:'删除成功'
+    })
+}
+/**
+ * 角色列表
+ * @param req
+ * @param res
+ * @returns {Promise<void>}
+ */
+exports.roleList = async (req, res) => {
+    const page = parseInt(req.body.p || 0) * 10;
+    const count = await RoleModel.count();
+    const user = await RoleModel.find().limit(10).skip(page);
+    res.status(200).send(
+        {
+            count:count,
+            data:user
+        }
+    )
 }
