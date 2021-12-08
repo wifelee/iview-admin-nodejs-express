@@ -24,7 +24,7 @@ exports.projectAdd = async (req, res) => {
         const item = await projectModel.findOne({_id: req.body.id});
         if(item)
         {
-            const result = await projectModel.updateOne({
+            const result = await item.updateOne({
                 name: req.body.name,
                 type:req.body.type
             })
@@ -34,7 +34,7 @@ exports.projectAdd = async (req, res) => {
             })
         }
     }
-    
+
     //存进数据库
     const result = await projectModel.create({
         name: req.body.name,
