@@ -100,7 +100,19 @@ exports.test = (req, res) => {
 exports.adminList = async (req, res) => {
     const page = parseInt(req.body.p || 0) * 10;
     const count = await AdminModel.count();
-    const user = await AdminModel.find().select(['name','mobile','real_name','access','role','created_at']).limit(10).skip(page);
+    const  role=new RegExp(req.body.role,'i')
+    const  mobile=new RegExp(req.body.mobile,'i')
+    const  real_name=new RegExp(req.body.real_name,'i')
+    const user = await AdminModel.find(
+        {
+            //模糊搜索的字段
+            $and:[
+                {$or: [{role: {$regex: role}}]},
+                {$or: [{mobile: {$regex: mobile}}]},
+                {$or: [{real_name: {$regex: real_name}}]}
+            ]
+        }
+    ).select(['name','mobile','real_name','access','role','created_at']).limit(10).skip(page);
     res.status(200).send(
         {
             count:count,
@@ -235,7 +247,15 @@ exports.delRole = async (req, res) => {
 exports.roleList = async (req, res) => {
     const page = parseInt(req.body.p || 0) * 10;
     const count = await RoleModel.count();
-    const user = await RoleModel.find().limit(10).skip(page);
+    const  name=new RegExp(req.body.name,'i')
+    const user = await RoleModel.find(
+        {
+            //模糊搜索的字段
+            $and:[
+                {$or: [{name: {$regex: name}}]}
+            ]
+        }
+    ).limit(10).skip(page);
     res.status(200).send(
         {
             count:count,
