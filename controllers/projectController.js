@@ -86,7 +86,7 @@ exports.projectList = async (req, res)=>{
             message:'数据有误！'
         })
     }
-    const result = await  projectModel.deleteOne({_id:id})
+    const result = await  project.deleteOne({_id:id})
     res.status(200).send({
         message:'删除成功'
     })
@@ -168,7 +168,7 @@ exports.scoreList = async (req, res)=>{
             message:'数据有误！'
         })
     }
-    const result = await  projectModel.deleteOne({_id:id})
+    const result = await  project.deleteOne({_id:id})
     res.status(200).send({
         message:'删除成功'
     })
@@ -306,7 +306,7 @@ exports.formDelete = async (req, res) => {
             message:'数据有误！'
         })
     }
-    const result = await  FormModel.deleteOne({_id:id})
+    const result = await  project.deleteOne({_id:id})
     res.status(200).send({
         message:'删除成功'
     })
