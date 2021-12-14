@@ -194,15 +194,24 @@ exports.formAdd = async (req, res) => {
     if(req.body.secondLevel ==='') return res.status(500).send({
         message:'二级指标不能为空'
     })
-    if(req.body.thirdLevel === '') return res.status(500).send({
-        message:'三级指标不能为空'
-    })
-    if(req.body.score ==='') return res.status(500).send({
-        message:'单项分值不能为空'
-    })
+    if(req.body.score ==='') {
+        if(req.body.thirdLevel === '') {return res.status(500).send({
+            message:'三级指标不能为空'
+        })}
+    }else {
+        //新创建三级指标数据
+        const score = await ScoresModel.create({
+            firstLevel: req.body.firstLevel,
+            secondLevel: req.body.secondLevel,
+            thirdLevel:req.body.thirdLevel === ''  ? req.body.score :  req.body.thirdLevel
+        })
+        console.log(score)
+    }
+
     if(req.body.time ==='') return res.status(500).send({
         message:'问题次数不能为空'
     })
+    console.log(req.body.thirdLevel)
     //存进数据库
     const result = await FormModel.create({
         name: req.body.name,
@@ -251,6 +260,34 @@ exports.formLogList = async (req, res)=>{
     res.status(200).send(
         {
             data:result
+        }
+    )
+}
+/**
+ * admin--LogList
+ * @param req
+ * @param res
+ * @returns {Promise<void>}
+ */
+exports.adminFormLogList = async (req, res)=>{
+    const page = parseInt(req.body.p || 0) * 10;
+    const count = await FormLogModel.count();
+    const  role= new RegExp(req.body.role,'i')
+    const  name= new RegExp(req.body.name,'i')
+    const project = await FormLogModel.find({
+        //模糊搜索的字段
+        $and:[
+            {$or: [{role: {$regex: role}}]},
+            {$or: [{name: {$regex: name}}]}
+
+        ]
+
+
+    }).sort({created_at: -1}).limit(10).skip(page);
+    res.status(200).send(
+        {
+            count:count,
+            data:project
         }
     )
 }

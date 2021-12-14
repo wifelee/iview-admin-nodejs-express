@@ -40,6 +40,7 @@ router.post('/admin/project/option/list', projectController.getOption)
 router.post('/admin/project/score/list', projectController.scoreList)
 router.post('/admin/project/score/add', projectController.scoreAdd)
 router.post('/admin/project/score/delete', projectController.scoreDelete)
+router.post('/admin/project/form/log/list', projectController.adminFormLogList)
 /* h5. */
 router.post('/h5/project/form/add', projectController.formAdd)
 router.post('/h5/project/form/list', projectController.formList)

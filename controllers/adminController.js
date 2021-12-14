@@ -74,12 +74,13 @@ exports.login = async (req, res) => {
     //返回token
     const token = jwt.sign({
         id:user._id,
-        name:user.name
+        name:user.real_name
     },process.env.JWT_SCRECT,{ expiresIn: '1d' })
     res.status(200).send({
         token:token,
         data:{
-            name:user.name,
+            role:user.role,
+            name:user.real_name,
             _id:user._id,
             mobile:user.mobile
         }
