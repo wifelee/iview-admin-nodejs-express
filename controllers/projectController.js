@@ -144,7 +144,7 @@ exports.scoreAdd = async (req, res) => {
 exports.scoreList = async (req, res)=>{
     const page = parseInt(req.body.p || 0) * 10;
     const count = await ScoresModel.count();
-    const result = await ScoresModel.find().limit(10).skip(page);
+    const result = await ScoresModel.find().sort({created_at: -1}).limit(10).skip(page);
     res.status(200).send(
         {
             count:count,
