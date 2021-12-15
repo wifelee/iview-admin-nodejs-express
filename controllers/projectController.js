@@ -61,8 +61,6 @@ exports.projectList = async (req, res)=>{
             {     $or: [{name: {$regex: name}}]}
 
         ]
-
-
     }).limit(10).skip(page);
       res.status(200).send(
         {
