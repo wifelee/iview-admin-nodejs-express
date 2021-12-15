@@ -52,7 +52,7 @@ exports.projectAdd = async (req, res) => {
 exports.projectList = async (req, res)=>{
     const  type=new RegExp(req.body.type,'i')
     const  name=new RegExp(req.body.name,'i')
-    if(req.body.p  === '') {
+    if(!req.body.p) {
         const project = await projectModel.find({
             //模糊搜索的字段
             $and:[
