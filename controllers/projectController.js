@@ -50,24 +50,42 @@ exports.projectAdd = async (req, res) => {
 }
 
 exports.projectList = async (req, res)=>{
-    const page = parseInt(req.body.p || 0) * 10;
-    const count = await projectModel.count();
     const  type=new RegExp(req.body.type,'i')
     const  name=new RegExp(req.body.name,'i')
-    const project = await projectModel.find({
-        //模糊搜索的字段
-        $and:[
-            {$or: [{type: {$regex: type}}]}  ,
-            {     $or: [{name: {$regex: name}}]}
+    if(req.body.p  === '') {
+        const project = await projectModel.find({
+            //模糊搜索的字段
+            $and:[
+                {$or: [{type: {$regex: type}}]}  ,
+                {     $or: [{name: {$regex: name}}]}
 
-        ]
-    }).limit(10).skip(page);
-      res.status(200).send(
-        {
-            count:count,
-            data:project
-        }
-    )
+            ]
+        });
+       return  res.status(200).send(
+            {
+                data:project
+            }
+        )
+    }else {
+        const page = parseInt(req.body.p || 0) * 10;
+        const count = await projectModel.count();
+
+        const project = await projectModel.find({
+            //模糊搜索的字段
+            $and:[
+                {$or: [{type: {$regex: type}}]}  ,
+                {     $or: [{name: {$regex: name}}]}
+
+            ]
+        }).limit(10).skip(page);
+       return  res.status(200).send(
+            {
+                count:count,
+                data:project
+            }
+        )
+    }
+
 }
 /**
  * 删除项目
