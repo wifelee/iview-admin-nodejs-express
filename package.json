@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "express-http-proxy": "^1.6.2",
-    "http-proxy-middleware": "^1.1.0"
+    "http-proxy-middleware": "^1.1.0",
+    "tencentcloud-sdk-nodejs": "^4.0.259"
   }
 }

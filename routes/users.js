@@ -15,6 +15,8 @@ router.get('/', userController.add);
  */
 router.post('/register', adminController.register);
 router.post('/login', adminController.login);
+router.post('/h5/login', adminController.h5login);
+router.post('/getSms', adminController.getSms);
 /**
  * 小程序登录
  */
