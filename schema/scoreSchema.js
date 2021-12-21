@@ -5,7 +5,10 @@ var ScoreSchema = mongoose.Schema({
   firstLevel: String,
   secondLevel: String,
   thirdLevel:String,
-  score:String
+    total:String,
+  score:String,
+    code:String
+
 },
 {
     versionKey: false, // 不保存__v

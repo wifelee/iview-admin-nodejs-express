@@ -9,7 +9,9 @@ var FormSchema = mongoose.Schema({
         secondLevel: String,
         thirdLevel:String,
         score:String,
-        formId:String
+        formId:String,
+        dScore:String,
+    total:String
     },
     {
         versionKey: false, // 不保存__v

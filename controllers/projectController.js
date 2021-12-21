@@ -140,6 +140,9 @@ exports.scoreAdd = async (req, res) => {
     if (!req.body.firstLevel) return res.status(500).send({
         message: '一级指标不能为空'
     })
+    if (!req.body.code) return res.status(500).send({
+        message: '一级指标项目代码不能为空'
+    })
     if (!req.body.secondLevel) return res.status(500).send({
         message: '二级指标不能为空'
     })
@@ -156,7 +159,9 @@ exports.scoreAdd = async (req, res) => {
             firstLevel: req.body.firstLevel,
             secondLevel: req.body.secondLevel,
             thirdLevel: req.body.thirdLevel,
-            score: req.body.score
+            score: req.body.score,
+            total: req.body.total,
+            code: req.body.code
         })
         return res.status(200).send({
             message: '更新成功',
@@ -168,7 +173,9 @@ exports.scoreAdd = async (req, res) => {
         firstLevel: req.body.firstLevel,
         secondLevel: req.body.secondLevel,
         thirdLevel: req.body.thirdLevel,
-        score: req.body.score
+        total: req.body.total,
+        score: req.body.score || '0.5',
+        code: req.body.code
     })
     //返回token
     res.status(200).send({
@@ -187,7 +194,21 @@ exports.scoreList = async (req, res) => {
         }
     )
 }
+/**
+ * H5-scorelist
+ * @param req
+ * @param res
+ * @returns {Promise<void>}
+ */
+exports.h5scoreList = async (req, res) => {
 
+    const result = await ScoresModel.find().sort({created_at: -1});
+    res.status(200).send(
+        {
+            data: result
+        }
+    )
+}
 /**
  * 删除项目
  * @param req
@@ -228,6 +249,14 @@ exports.formAdd = async (req, res) => {
     if (req.body.secondLevel === '') return res.status(500).send({
         message: '二级指标不能为空'
     })
+
+    let score = 0.5
+    if(req.body.firstLevel === '公共设施' && req.body.secondLevel === '灭火器放置标准' ) score = 1
+    if(req.body.firstLevel === '长效机制' && req.body.secondLevel === '管理标准') score = 3
+    const Scores = await ScoresModel.findOne({firstLevel:req.body.firstLevel})
+    const codeTotal = Scores.total
+    const codeValue = Scores.code
+    console.log('codeTotal',codeTotal,Scores)
     if (req.body.score === '') {
         if (req.body.thirdLevel === '') {
             return res.status(500).send({
@@ -235,13 +264,17 @@ exports.formAdd = async (req, res) => {
             })
         }
     } else {
+
         //新创建三级指标数据
-        const score = await ScoresModel.create({
+        //第九或者第十个是1分 其他都是0.5
+        await ScoresModel.create({
             firstLevel: req.body.firstLevel,
             secondLevel: req.body.secondLevel,
-            thirdLevel: req.body.thirdLevel === '' ? req.body.score : req.body.thirdLevel
+            score:score,
+            code:codeValue,
+            total:codeTotal,
+            thirdLevel: req.body.thirdLevel
         })
-        console.log(score)
     }
 
     if (req.body.time === '') return res.status(500).send({
@@ -278,6 +311,17 @@ exports.formAdd = async (req, res) => {
 
     }
 
+    // 计算得分
+
+
+    const time = parseInt(req.body.time)
+    let dScore = parseFloat(time * score)
+    let total = 100
+
+    if(dScore  > codeTotal ) {
+        dScore = codeTotal
+    }
+    total = parseFloat(total - dScore)
     //存进数据库
     const result = await FormModel.create({
         name: req.body.name,
@@ -285,7 +329,9 @@ exports.formAdd = async (req, res) => {
         firstLevel: req.body.firstLevel,
         secondLevel: req.body.secondLevel,
         thirdLevel: req.body.thirdLevel,
-        score: req.body.score,
+        score: score,
+        total:total,
+        dScore:dScore,
         time: req.body.time,
         formId:formId
     })

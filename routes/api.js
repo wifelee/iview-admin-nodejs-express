@@ -48,4 +48,5 @@ router.post('/h5/project/form/add', projectController.formAdd)
 router.post('/h5/project/form/list', projectController.formList)
 router.post('/h5/project/form/log/list', projectController.formLogList)
 router.post('/h5/project/form/delete', projectController.formDelete)
+router.post('/h5/project/score/list', projectController.h5scoreList)
 module.exports = router;
