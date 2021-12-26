@@ -336,7 +336,6 @@ exports.formAdd = async (req, res) => {
         formId:formId
     })
 
-    //返回token
     res.status(200).send({
         message: '创建成功',
         data: result
@@ -409,11 +408,17 @@ exports.adminFormLogList = async (req, res) => {
  */
 exports.adminFormList = async (req, res) => {
     const page = parseInt(req.body.p || 0) * 10;
-    console.log('id',req.body._id)
+    let kScore = 0
+    for(let i of await FormModel.find()) {
+
+        kScore =parseFloat(kScore + parseFloat(i['dScore'] || 0)) 
+    }
+    const totalScore =parseFloat(100 - parseFloat(kScore))
     const count = await FormModel.find({formId:req.body._id}).count();
     const result = await FormModel.find({formId:req.body._id}).sort({created_at: -1}).limit(10).skip(page);
     res.status(200).send(
         {
+            totalScore:totalScore,
             count:count,
             data: result
         }
