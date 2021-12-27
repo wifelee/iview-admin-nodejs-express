@@ -42,7 +42,7 @@ router.post('/admin/project/score/add', projectController.scoreAdd)
 router.post('/admin/project/score/delete', projectController.scoreDelete)
 router.post('/admin/project/form/log/list', projectController.adminFormLogList)
 router.post('/admin/project/form/list', projectController.adminFormList)
-
+router.post('/admin/project/form/delete', projectController.formDelete)
 /* h5. */
 router.post('/h5/project/form/add', projectController.formAdd)
 router.post('/h5/project/form/list', projectController.formList)

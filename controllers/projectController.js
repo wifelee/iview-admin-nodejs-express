@@ -256,7 +256,6 @@ exports.formAdd = async (req, res) => {
     const Scores = await ScoresModel.findOne({firstLevel:req.body.firstLevel})
     const codeTotal = Scores.total
     const codeValue = Scores.code
-    console.log('codeTotal',codeTotal,Scores)
     if (req.body.score === '') {
         if (req.body.thirdLevel === '') {
             return res.status(500).send({
@@ -316,12 +315,14 @@ exports.formAdd = async (req, res) => {
 
     const time = parseInt(req.body.time)
     let dScore = parseFloat(time * score)
+
     let total = 100
 
     if(dScore  > codeTotal ) {
         dScore = codeTotal
     }
     total = parseFloat(total - dScore)
+
     //存进数据库
     const result = await FormModel.create({
         name: req.body.name,
@@ -409,8 +410,7 @@ exports.adminFormLogList = async (req, res) => {
 exports.adminFormList = async (req, res) => {
     const page = parseInt(req.body.p || 0) * 10;
     let kScore = 0
-    for(let i of await FormModel.find()) {
-
+    for(let i of await FormModel.find({formId:req.body._id})) {
         kScore =parseFloat(kScore + parseFloat(i['dScore'] || 0)) 
     }
     const totalScore =parseFloat(100 - parseFloat(kScore))
