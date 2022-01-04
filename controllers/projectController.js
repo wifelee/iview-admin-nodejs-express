@@ -4,8 +4,8 @@ var StandarsModel = require('../schema/standarSchema')
 var ScoresModel = require('../schema/scoreSchema')
 var FormModel = require('../schema/formSchema')
 var FormLogModel = require('../schema/formLogSchema')
-const jwt = require("jsonwebtoken");
-
+var CardModel = require('../schema/cardSchema')
+var tools = require('../public/javascripts/tools')
 //测试接口
 exports.test = (req, res) => {
     res.json({
@@ -26,12 +26,16 @@ exports.projectAdd = async (req, res) => {
     if (!req.body.type) return res.status(500).send({
         message: '科室类别不能为空'
     })
+    if (!req.body.code) return res.status(500).send({
+        message: '科室类别代码不能为空'
+    })
     if (req.body.id) {
         const item = await projectModel.findOne({_id: req.body.id});
         if (item) {
             const result = await item.updateOne({
                 name: req.body.name,
-                type: req.body.type
+                type: req.body.type,
+                code: req.body.code
             })
             return res.status(200).send({
                 message: '更新成功',
@@ -43,8 +47,8 @@ exports.projectAdd = async (req, res) => {
     //存进数据库
     const result = await projectModel.create({
         name: req.body.name,
-        type: req.body.type
-
+        type: req.body.type,
+        code: req.body.code
     })
 
     //返回token
@@ -62,7 +66,7 @@ exports.projectAdd = async (req, res) => {
 exports.projectList = async (req, res) => {
     const type = new RegExp(req.body.type, 'i')
     const name = new RegExp(req.body.name, 'i')
-    if (!req.body.p) {
+    if (req.body.p === null || req.body.p === 'undefined' || req.body.p === '') {
         const project = await projectModel.find({
             //模糊搜索的字段
             $and: [
@@ -78,16 +82,15 @@ exports.projectList = async (req, res) => {
         )
     } else {
         const page = parseInt(req.body.p || 0) * 10;
-        const count = await projectModel.count();
 
+        const count = await projectModel.count();
         const project = await projectModel.find({
             //模糊搜索的字段
             $and: [
                 {$or: [{type: {$regex: type}}]},
                 {$or: [{name: {$regex: name}}]}
-
             ]
-        }).limit(10).skip(page);
+        }).sort({created_at: -1}).limit(10).skip(page);
         return res.status(200).send(
             {
                 count: count,
@@ -194,6 +197,97 @@ exports.scoreList = async (req, res) => {
         }
     )
 }
+
+
+/**
+ * 红黄牌登记
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
+exports.cardAdd = async (req, res) => {
+    if (tools.isEmpty(req.body.month)) return res.status(500).send({
+        message: '月份不能为空'
+    })
+    if (tools.isEmpty(req.body.cardName)) return res.status(500).send({
+        message: '红黄牌名称不能为空'
+    })
+    if (tools.isEmpty(req.body.type)) return res.status(500).send({
+        message: '科室类别不能为空'
+    })
+    if (tools.isEmpty(req.body.name)) return res.status(500).send({
+        message: '科室名称不能为空'
+    })
+
+    const card = await CardModel.findOne({_id: req.body.id});
+    if (card) {
+        const result = await card.updateOne({
+            month: req.body.month,
+            cardName: req.body.cardName,
+            type: req.body.type,
+            name: req.body.name
+        })
+        return res.status(200).send({
+            message: '更新成功',
+            data: result
+        })
+    }
+    //存进数据库
+    const result = await CardModel.create({
+        month: req.body.month,
+        cardName: req.body.cardName,
+        type: req.body.type,
+        name: req.body.name
+    })
+    //返回token
+    res.status(200).send({
+        message: '创建成功',
+        data: result
+    })
+}
+/**
+ * 红黄牌列表
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
+exports.cardList = async (req, res) => {
+    const type = new RegExp(req.body.type, 'i')
+    const name = new RegExp(req.body.name, 'i')
+    if (req.body.p === null || req.body.p === 'undefined' || req.body.p === '') {
+        const project = await CardModel.find({
+            //模糊搜索的字段
+            $and: [
+                {$or: [{type: {$regex: type}}]},
+                {$or: [{name: {$regex: name}}]}
+
+            ]
+        });
+        return res.status(200).send(
+            {
+                data: project
+            }
+        )
+    } else {
+        const page = parseInt(req.body.p || 0) * 10;
+
+        const count = await CardModel.count();
+        const project = await CardModel.find({
+            //模糊搜索的字段
+            $and: [
+                {$or: [{type: {$regex: type}}]},
+                {$or: [{name: {$regex: name}}]}
+            ]
+        }).sort({created_at: -1}).limit(10).skip(page);
+        return res.status(200).send(
+            {
+                count: count,
+                data: project
+            }
+        )
+    }
+
+}
 /**
  * H5-scorelist
  * @param req
@@ -201,7 +295,6 @@ exports.scoreList = async (req, res) => {
  * @returns {Promise<void>}
  */
 exports.h5scoreList = async (req, res) => {
-
     const result = await ScoresModel.find().sort({created_at: -1});
     res.status(200).send(
         {
@@ -390,8 +483,6 @@ exports.adminFormLogList = async (req, res) => {
             {$or: [{name: {$regex: name}}]}
 
         ]
-
-
     }).sort({created_at: -1}).limit(10).skip(page);
     res.status(200).send(
         {
@@ -424,6 +515,11 @@ exports.adminFormList = async (req, res) => {
         }
     )
 }
+
+
+
+
+
 /**
  * H5删除项目
  * @param req

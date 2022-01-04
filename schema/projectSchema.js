@@ -4,6 +4,7 @@ var bcrypt = require('bcryptjs')
 var ProjectSchema = mongoose.Schema({
   name: String,
   type: String,
+        code: String,
 },
 {
     versionKey: false, // 不保存__v
