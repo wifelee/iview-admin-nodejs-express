@@ -1,13 +1,9 @@
 var mongoose = require('mongoose');
 var bcrypt = require('bcryptjs')
 
-var CardSchema = mongoose.Schema({
-        month: String,
-        cardName: String,
-        type:String,
-        name:String,
-        code:String,
-        count:String,
+var TypeSchema = mongoose.Schema({
+        name: String,
+        code: String,
     },
     {
         versionKey: false, // 不保存__v
@@ -20,6 +16,6 @@ var CardSchema = mongoose.Schema({
     }
 );
 
-var CardModel= mongoose.model('cards', CardSchema);//表名
+var TypeModel= mongoose.model('types', TypeSchema);//表名
 
-module.exports = CardModel
+module.exports = TypeModel

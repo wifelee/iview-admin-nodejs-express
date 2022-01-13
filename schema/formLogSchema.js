@@ -4,7 +4,9 @@ var bcrypt = require('bcryptjs')
 var FormLogSchema = mongoose.Schema({
         name: String,
         role: String,
-        real_name: String
+        real_name: String,
+        totalScore: String,
+        month:String,
     },
     {
         versionKey: false, // 不保存__v

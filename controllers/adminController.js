@@ -128,12 +128,16 @@ exports.getSms = async (req,res)=>{
  */
 exports.h5login = async (req, res) => {
     // 先查找验证码
-    const codeResult = await SmsCodeModel.findOne({phone:req.body.name,status:'00'});
+    const result = await SmsCodeModel.find({phone:req.body.name,status:'00'}).sort({created_at: -1});
+    //查询最新一条
+    const codeResult = result[0]
+
     if(!codeResult) {
         return res.status(501).send({
             message:'该手机信息有误'
         })
     }
+    console.log('codeResult',codeResult,req.body.code)
     if(codeResult.code !== req.body.code) {
         return res.status(501).send({
             message:'验证码错误'
@@ -180,6 +184,7 @@ exports.login = async (req, res) => {
 
     // 根据用户名找用户
     const user = await AdminModel.findOne({mobile: req.body.name});
+
     if( !user )
     {
         return res.status(401).send({
