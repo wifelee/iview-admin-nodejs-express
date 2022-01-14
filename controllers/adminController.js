@@ -122,6 +122,54 @@ exports.getSms = async (req,res)=>{
 
 }
 /**
+ * 修改密码
+ * @param req
+ * @param res
+ * @returns {Promise<void>}
+ */
+exports.changePassword = async (req,res)=>{
+    const token = String(req.headers.authorization || '').split(' ').pop();
+    if (!token) //校验token
+    {
+        res.status(401).send({
+            message:'请先登录'
+        })
+    }
+
+    const {id} = jwt.verify(token, process.env.JWT_SCRECT)
+
+    if (!id)//校验解密信息
+    {
+        res.status(401).send({
+            message:'请先登录'
+        })
+    }
+    const user =await AdminModel.findById(id)
+
+    if (!user)//校验用户是否存在
+    {
+        res.status(401).send({
+            message:'请先登录'
+        })
+    }
+    // 校验原密码
+    const password = bcrypt.compareSync(req.body.oldpassword, user.password)
+    if(!password)
+    {
+        return res.status(200).send({
+            code:'0001',
+            message:'原密码密码错误'
+        })
+    }
+    await user.updateOne({
+        password:req.body.password
+    })
+    return res.status(200).send({
+        code:'0000',
+        message:'修改成功'
+    })
+}
+/**
  * H5 - 登录
  * @param req
  * @param res
@@ -181,7 +229,6 @@ exports.h5login = async (req, res) => {
  * @param res
  */
 exports.login = async (req, res) => {
-
     // 根据用户名找用户
     const user = await AdminModel.findOne({mobile: req.body.name});
 

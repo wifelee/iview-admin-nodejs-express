@@ -16,6 +16,7 @@ router.get('/', function(req, res, next) {
 /* admin. */
 router.post('/admin/test', adminController.test)
 router.post('/admin/login', adminController.login)
+router.post('/admin/changePassword', adminController.changePassword)
 router.post('/admin/adminList', adminController.adminList)
 router.post('/admin/addNewAdmin', adminController.register)
 router.post('/admin/deleteAdmin', adminController.deleteAdmin)
