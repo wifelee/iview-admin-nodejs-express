@@ -175,7 +175,7 @@ exports.projectAdd = async (req, res) => {
 exports.projectList = async (req, res) => {
         const page = parseInt(req.body.p || 0) * 10;
         const count = await projectModel.count();
-        const type = new RegExp(req.body.type, 'i')
+        const type = new RegExp(req.body.code, 'i')
         const name = new RegExp(req.body.name, 'i')
         const project = await projectModel.find({
             //模糊搜索的字段
@@ -265,9 +265,9 @@ exports.scoreAdd = async (req, res) => {
     if (!req.body.secondLevel) return res.status(500).send({
         message: '二级指标不能为空'
     })
-    if (!req.body.thirdLevel) return res.status(500).send({
-        message: '三级指标不能为空'
-    })
+    // if (!req.body.thirdLevel) return res.status(500).send({
+    //     message: '三级指标不能为空'
+    // })
     if (!req.body.score) return res.status(500).send({
         message: '单项分值不能为空'
     })
