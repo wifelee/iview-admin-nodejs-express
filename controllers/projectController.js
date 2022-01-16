@@ -615,19 +615,37 @@ exports.formLogList = async (req, res) => {
 exports.adminFormLogList = async (req, res) => {
     const page = parseInt(req.body.p || 0) * 10;
     const count = await FormLogModel.count();
-    const role = new RegExp(req.body.role, 'i')
-    const name = new RegExp(req.body.name, 'i')
-    const project = await FormLogModel.find({
+    const role = req.body.role
+    const real_name = req.body.real_name
+    const month = req.body.month
+    const param = {}
+    if(role) param.role = role
+    if(real_name) param.real_name = real_name
+    if(month) param.month = month
+    if(JSON.stringify(param) == "{}") {
+        project = await FormLogModel.find({}).sort({created_at: -1}).limit(10).skip(page)
+        return     res.status(200).send(
+            {
+                count: JSON.stringify(param) == "{}" ? count :  project.length,
+                data: project
+            }
+        )
+    }
+    param.role = new RegExp(req.body.role, 'i')
+    param.real_name = new RegExp(req.body.real_name, 'i')
+    param.month = new RegExp(req.body.month, 'i')
+    console.log('param',param)
+    project = await FormLogModel.find({
         //模糊搜索的字段
         $and: [
-            {$or: [{role: {$regex: role}}]},
-            {$or: [{name: {$regex: name}}]}
-
+            {$or: [{month: {$regex:  param.month}}]},
+            {$or: [{role: {$regex:  param.role}}]},
+            {$or: [{real_name: {$regex:  param.real_name}}]}
         ]
     }).sort({created_at: -1}).limit(10).skip(page);
     res.status(200).send(
         {
-            count: count,
+            count:  project.length,
             data: project
         }
     )
@@ -672,24 +690,20 @@ exports.adminFormList = async (req, res) => {
  * @returns {Promise<void>}
  */
 exports.rankList = async (req, res) => {
-    const name = new RegExp(req.body.name, 'i')
+    // const type = new RegExp(req.body.type, 'i')
     let monthResult = req.body.month || ''
-    if(tools.isEmpty(req.body.month)){
+    if(tools.isEmpty(monthResult)){
+
         // 没传月份默认查当月
         const d = new Date()
         const year = d.getFullYear()
         const month = d.getMonth() + 1
          monthResult = year + '-' + (month < 10 ? `0${month}` : month)
     }
-    monthResult = new RegExp(monthResult, 'i')
-    const project = await FormLogModel.find({
-        //模糊搜索的字段
-        $and: [
-            {$or: [{month: {$regex: monthResult}}]},
-            {$or: [{name: {$regex: name}}]}
 
-        ]
-    });
+    const param = { month:monthResult}
+    if(req.body.type) param.type = req.body.type
+    const project = await FormLogModel.find(param);
     // 计算出每个log每个科室的总分
     for(let i of project) {
         let kScore = 0
