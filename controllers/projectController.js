@@ -525,7 +525,7 @@ exports.formAdd = async (req, res) => {
     }else {
         // 护士长每月可检查2次 其他只能一次
         const logArr = logResult.filter(a=>a.name === req.body.name)
-        console.log('logArr',logArr)
+        console.log('logArr',logResult)
         const logDetail = await FormModel.find({formId:logArr[0]._id})
         
       
