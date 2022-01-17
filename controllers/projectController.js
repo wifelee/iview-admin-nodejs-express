@@ -510,6 +510,7 @@ exports.formAdd = async (req, res) => {
     )
     //有则关联到当日的_id
     if(logResult.length === 0) {
+         console.log('logArr1')
         const d = new Date()
         const year = d.getFullYear()
         const month = d.getMonth() + 1
