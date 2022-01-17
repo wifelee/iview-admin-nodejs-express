@@ -528,7 +528,7 @@ exports.formAdd = async (req, res) => {
          console.log('logArr',logResult)
         if(logArr.length > 0) {
         const logDetail = await FormModel.find({formId:logArr[0]._id})
-        if(logArr.length === 1 &&  req.body.role === '护士长') {
+        if(logDetail.length === 1 &&  req.body.role === '护士长') {
 
         }else {
             return res.status(500).send({
