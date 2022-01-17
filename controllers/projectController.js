@@ -1,3 +1,31 @@
+Skip to content
+Search or jump to…
+Pull requests
+Issues
+Marketplace
+Explore
+ 
+@wifelee 
+wifelee
+/
+iview-admin-nodejs-express
+Private
+Code
+Issues
+Pull requests
+Actions
+Projects
+Security
+Insights
+Settings
+iview-admin-nodejs-express/controllers/projectController.js /
+
+许开榕 fix:上传次数限制
+Latest commit fd665ec 6 hours ago
+ History
+ 0 contributors
+926 lines (874 sloc)  25.1 KB
+   
 const https = require('https');
 var projectModel = require('../schema/projectSchema')
 var typeModel = require('../schema/typeSchema')
@@ -527,7 +555,8 @@ exports.formAdd = async (req, res) => {
         const logArr = logResult.filter(a=>a.name === req.body.name)
          console.log('logArr',logResult)
         if(logArr.length > 0) {
-        const logDetail = await FormModel.find({formId:logArr[0]._id})
+            const logDetail = await FormModel.find({formId:logArr[0]._id})
+           
         if(logDetail.length === 1 &&  req.body.role === '护士长') {
 
         }else {
@@ -535,10 +564,9 @@ exports.formAdd = async (req, res) => {
                 message: '您本月已提交过该科室的评分表了'
             })
         }
+
         }
        
-
-
         //有记录后就ID就是这条记录的_id
         formId = logResult[0]._id
 
@@ -927,3 +955,17 @@ exports.formDelete = async (req, res) => {
         message: '删除成功'
     })
 }
+© 2022 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Docs
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
+Loading complete Octotree
+ Login with GitHub
