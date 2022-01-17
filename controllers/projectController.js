@@ -529,15 +529,15 @@ exports.formAdd = async (req, res) => {
         
         console.log('logArr',logDetail)
         if(logDetail.length === 1 &&  req.body.role === '护士长') {
-
+        //有记录后就ID就是这条记录的_id
+        formId = logDetail[0]._id
         }else {
             return res.status(500).send({
                 message: '您本月已提交过该科室的评分表了'
             })
         }
 
-        //有记录后就ID就是这条记录的_id
-        formId = logDetail[0]._id
+        
 
 
     }
