@@ -510,7 +510,6 @@ exports.formAdd = async (req, res) => {
     )
     //有则关联到当日的_id
     if(logResult.length === 0) {
-         console.log('logArr1')
         const d = new Date()
         const year = d.getFullYear()
         const month = d.getMonth() + 1
@@ -526,19 +525,20 @@ exports.formAdd = async (req, res) => {
     }else {
         // 护士长每月可检查2次 其他只能一次
         const logArr = logResult.filter(a=>a.name === req.body.name)
+        console.log('logArr',logArr)
         const logDetail = await FormModel.find({formId:logArr[0]._id})
         
-        console.log('logArr',logDetail)
-        if(logDetail.length === 1 &&  req.body.role === '护士长') {
-        //有记录后就ID就是这条记录的_id
-        formId = logDetail[0]._id
+      
+        if(logArr.length === 1 &&  req.body.role === '护士长') {
+
         }else {
             return res.status(500).send({
                 message: '您本月已提交过该科室的评分表了'
             })
         }
 
-        
+        //有记录后就ID就是这条记录的_id
+        formId = logResult[0]._id
 
 
     }
