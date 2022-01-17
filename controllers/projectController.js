@@ -537,7 +537,7 @@ exports.formAdd = async (req, res) => {
         }
 
         //有记录后就ID就是这条记录的_id
-        formId = logResult[0]._id
+        formId = logDetail[0]._id
 
 
     }
