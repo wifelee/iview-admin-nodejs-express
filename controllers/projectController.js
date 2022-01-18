@@ -571,7 +571,19 @@ exports.formAdd = async (req, res) => {
         time: req.body.time,
         formId:formId
     })
-
+    // 检查是否有红黄牌记录
+    if(req.body.role !== '护士长') {
+        if(req.body.cardName!=='' && req.body.count !== '') {
+            const cardResult = await CardModel.create({
+                month: monthResult,
+                cardName: req.body.cardName,
+                count: req.body.count,
+                type: req.body.type,
+                name: req.body.name
+            })
+            console.log('cardResult',cardResult)
+        }
+    }
     res.status(200).send({
         message: '创建成功',
         data: result
