@@ -47,6 +47,7 @@ app.use('/users', usersRouter);
 app.use('/scrapy/api',apiRouter)
 
 app.use('/api', async (req, res, next) => {
+
   const token = String(req.headers.authorization || '').split(' ').pop();
   if (!token) //校验token
   {
@@ -54,21 +55,29 @@ app.use('/api', async (req, res, next) => {
       message:'请先登录'
     })
   }
-  const {id} = jwt.verify(token, process.env.JWT_SCRECT)
-  if (!id)//校验解密信息
-  {
-    res.status(401).send({
-      message:'请先登录'
-    })
-  }
-  const user =await AdminModel.findById(id)
+
+  try {
+    const {id} = jwt.verify(token, process.env.JWT_SCRECT)
+    if (!id)//校验解密信息
+    {
+      res.status(401).send({
+        message:'请先登录'
+      })
+    }
+    const user =await AdminModel.findById(id)
     if (!user)//校验用户是否存在
-  {
-    res.status(401).send({
-      message:'请先登录'
+    {
+      res.status(401).send({
+        message:'请先登录'
+      })
+    }
+    await next()
+  }catch (e) {
+    return res.status(500).send({
+      message:e
     })
   }
-    await next()
+
 },apiRouter);
 
 // catch 404 and forward to error handler

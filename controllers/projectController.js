@@ -460,9 +460,10 @@ exports.formAdd = async (req, res) => {
     if (req.body.secondLevel === '') return res.status(500).send({
         message: '二级指标不能为空'
     })
-
-
-
+    const d = new Date()
+    const year = d.getFullYear()
+    const month = d.getMonth() + 1
+    const monthResult = year + '-' + (month < 10 ? `0${month}` : month)
     let score = 0.5
     if(req.body.firstLevel === '公共设施' && req.body.secondLevel === '灭火器放置标准' ) score = 1
     if(req.body.firstLevel === '长效机制' && req.body.secondLevel === '管理标准') score = 3
@@ -497,23 +498,12 @@ exports.formAdd = async (req, res) => {
     const stamp1 = new Date(new Date().setHours(0, 0, 0, 0)); //获取当天零点的时间
     const stamp2 = new Date(new Date().setHours(0, 0, 0, 0) + 24 * 60 * 60 * 1000 - 1); //获取当天23:59:59的时间
     const logResult = await FormLogModel.find({
-            $and:[{
-                created_at: {
-                    "$gte":stamp1,
-                    "$lte":stamp2
-                }
-            },
-                {
-                    role:req.body.role
-                }]
+            month:monthResult,
+             role:req.body.role
         }
     )
     //有则关联到当日的_id
     if(logResult.length === 0) {
-        const d = new Date()
-        const year = d.getFullYear()
-        const month = d.getMonth() + 1
-        const monthResult = year + '-' + (month < 10 ? `0${month}` : month)
         const result2 = await FormLogModel.create({
             name: req.body.name,
             month:monthResult,
@@ -523,26 +513,21 @@ exports.formAdd = async (req, res) => {
         formId = result2._id
 
     }else {
-        // 护士长每月可检查2次 其他只能一次
-            const logDetail = await FormModel.find({formId:logResult[0]._id,name:req.body.name})
-        if(logDetail.length > 0) {
-            if(logDetail.length === 1 && req.body.role === '护士长') {
-
-            }else {
-                return res.status(500).send({
-                    message: '您本月已提交过该科室的评分表了'
-                })
-            }
+        if(logResult.length === 1 && req.body.role !== '护士长') {
+            return res.status(500).send({
+                message: '您本月已提交过该科室的评分表了'
+            })
+        }else if (logResult.length  === 2) {
+            return res.status(500).send({
+                message: '您本月已提交过该科室的评分表了'
+            })
         }
         //有记录后就ID就是这条记录的_id
         formId = logResult[0]._id
 
 
     }
-
     // 计算得分
-
-
     const time = parseInt(req.body.time)
     let dScore = parseFloat(time * score)
 
@@ -552,10 +537,7 @@ exports.formAdd = async (req, res) => {
         dScore = codeTotal
     }
     total = parseFloat(total - dScore)
-    const d = new Date()
-    const year = d.getFullYear()
-    const month = d.getMonth() + 1
-    const monthResult = year + '-' + (month < 10 ? `0${month}` : month)
+
     //存进数据库
     const result = await FormModel.create({
         name: req.body.name,
@@ -581,7 +563,6 @@ exports.formAdd = async (req, res) => {
                 type: req.body.type,
                 name: req.body.name
             })
-            console.log('cardResult',cardResult)
         }
     }
     res.status(200).send({
@@ -673,7 +654,7 @@ exports.adminFormLogList = async (req, res) => {
 exports.adminFormList = async (req, res) => {
     const page = parseInt(req.body.p || 0) * 10;
     let kScore = 0
-    for(let i of await FormModel.find({formId:req.body._id})) {
+    for(let i of await FormModel.find({formId:req.body._id,name:req.body.name})) {
         kScore =parseFloat(kScore + parseFloat(i['dScore'] || 0))
     }
     const totalScore =parseFloat(100 - parseFloat(kScore))
@@ -684,8 +665,8 @@ exports.adminFormList = async (req, res) => {
            totalScore:totalScore
         })
     }
-    const count = await FormModel.find({formId:req.body._id}).count();
-    const result = await FormModel.find({formId:req.body._id}).sort({created_at: -1}).limit(10).skip(page);
+    const count = await FormModel.find({formId:req.body._id,name:req.body.name}).count();
+    const result = await FormModel.find({formId:req.body._id,name:req.body.name}).sort({created_at: -1}).limit(10).skip(page);
     res.status(200).send(
         {
             totalScore:totalScore,
