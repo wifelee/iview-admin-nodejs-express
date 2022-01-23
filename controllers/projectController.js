@@ -1,4 +1,5 @@
 const https = require('https');
+var fs = require('fs');
 var projectModel = require('../schema/projectSchema')
 var typeModel = require('../schema/typeSchema')
 var StandarsModel = require('../schema/standarSchema')
@@ -7,7 +8,124 @@ var FormModel = require('../schema/formSchema')
 var FormLogModel = require('../schema/formLogSchema')
 var CardModel = require('../schema/cardSchema')
 var tools = require('../public/javascripts/tools')
-const {isEmpty} = require("../public/javascripts/tools");
+const {isEmpty,formatDate} = require("../public/javascripts/tools");
+const ExcelJS = require('exceljs');
+
+
+/**
+ *导出excel - 全部的form
+ * @param req
+ * @param res
+ */
+exports.onExportExcel = async (req, res)=>{
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Me';
+    workbook.lastModifiedBy = 'Her';
+    workbook.created = new Date(1985, 8, 30);
+    workbook.modified = new Date();
+    workbook.lastPrinted = new Date(2016, 9, 27);
+    const sheet = workbook.addWorksheet('My Sheet');
+    let worksheet = workbook.getWorksheet('My Sheet')
+    worksheet.columns = [
+        { header: '序号', key: 'index'},
+        { header: '科室', key: 'name' ,width:30},
+        { header: '检查时间', key: 'date' ,width:30},
+        // { header: '项目代码', key: 'code'},
+        { header: '存在问题', key: 'thirdLevel' ,width:40},
+        { header: '发生频次', key: 'time' ,width:10},
+        { header: '分值', key: 'score' ,width:10},
+        { header: '实际扣分', key: 'dScore' ,width:10},
+        { header: '得分', key: 'totalScore' ,width:10},
+    ];
+    //先查出所有科室的数据
+    let depart = await projectModel.find();
+
+    // 再查所有form 当前logId的
+    const form = await FormModel.find({formId:req.body.id});
+    let obj = {}
+    if(depart.length > 0) {
+        depart = depart.map(a=>a.name);
+        for(let i of depart) {
+            const arr = form.filter(a=>a.name === i)
+            if(arr.length > 0 ){
+                obj[i] = [...arr]
+            }
+        }
+    }else {
+        return res.status(500).send({
+            message: '无数据',
+            data: null
+        })
+    }
+
+    //处理数据
+    let arr = []
+    for(let i in obj) {
+
+        let score = 0
+        for(let j of obj[i]) {
+            score = parseFloat(score + parseFloat(j['dScore']))
+        }
+        obj[i+'_total'] = parseFloat(100 - score)
+        arr = [...arr,...obj[i]]
+    }
+    let temp = ''
+    let tempArr = []
+   arr.forEach((a,i)=>{
+       if(i === 0) {
+           temp = a.name
+           tempArr.push(i)
+       }
+       if(a.name !== temp) {
+           tempArr.push(i-1)
+           temp = a.name
+       }
+       //插入数据
+       worksheet.getRow(i + 2).values = [
+           i + 1,
+           a['name'],
+           formatDate(a['created_at'],'year'),
+           // a['code'],
+           a['thirdLevel'],
+           a['time'],
+           a['score'],
+           a['dScore'],
+           obj[a.name + '_total']
+       ]
+
+   })
+    tempArr.push(arr.length-1)
+    let fianlTemp = []
+    for(let i = 0;i < tempArr.length - 1; i++ ) {
+        if(i === 0) {
+            fianlTemp.push([tempArr[i],tempArr[i+1]])
+        }else {
+            fianlTemp.push([tempArr[i]+1,tempArr[i+1]])
+        }
+
+    }
+    for(let i of fianlTemp) {
+        worksheet.mergeCells(`B${i[0]+2}:B${i[1]+2}`);
+        worksheet.mergeCells(`H${i[0]+2}:H${i[1]+2}`);
+        worksheet.getCell(`B${i[0]+2}`).alignment = { vertical: 'middle', horizontal: 'center' };
+    }
+
+//Writing XLSX
+    const fileName = '全院6S质量检查现场反馈表.xlsx'
+    workbook.xlsx.writeFile(`files/${fileName}`)
+        .then(function(result) {
+            return res.status(200).send({
+                message: '导出成功',
+                url:`/static/${fileName}`
+                // data: obj,
+                // tempArr:tempArr,
+                // temp:temp,
+                // fianlTemp:fianlTemp
+            })
+
+        });
+
+}
 //测试接口
 exports.test = (req, res) => {
     res.json({

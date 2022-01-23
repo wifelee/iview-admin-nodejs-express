@@ -55,6 +55,7 @@ router.post('/admin/project/card/list', projectController.cardList)
 router.post('/admin/project/card/delete', projectController.cardDelete)
 router.post('/admin/project/rank/list', projectController.rankList)
 router.post('/admin/project/rank/result', projectController.rankResult)
+router.post('/admin/project/export/excel', projectController.onExportExcel)
 /* h5. */
 router.post('/h5/project/form/add', projectController.formAdd)
 router.post('/h5/project/form/list', projectController.formList)

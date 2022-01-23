@@ -34,7 +34,7 @@ app.use(cookieParser());
 app.use('/' , express.static(path.join(__dirname, 'client/dist')));
 //后台管理页面
 app.use('/admin' , express.static(path.join(__dirname, 'admin')));//访问静态资源
-
+app.use('/static',express.static(path.join(__dirname, 'files')))
 //连接数据库
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
