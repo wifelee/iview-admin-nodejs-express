@@ -934,3 +934,22 @@ exports.formLogDelete = async (req, res) => {
         message: '删除成功'
     })
 }
+/**
+ * 红黄牌删除
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
+exports.cardDelete = async (req, res) => {
+    const id = req.body.id;
+    const project = await CardModel.findById(id)
+    if (!project) {
+        return res.status(202).send({
+            message: '数据有误！'
+        })
+    }
+    const result = await project.deleteOne({_id: id})
+    res.status(200).send({
+        message: '删除成功'
+    })
+}

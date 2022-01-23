@@ -52,6 +52,7 @@ router.post('/admin/project/form/delete', projectController.formDelete)
 router.post('/admin/project/form/log/delete', projectController.formLogDelete)
 router.post('/admin/project/card/add', projectController.cardAdd)
 router.post('/admin/project/card/list', projectController.cardList)
+router.post('/admin/project/card/delete', projectController.cardDelete)
 router.post('/admin/project/rank/list', projectController.rankList)
 router.post('/admin/project/rank/result', projectController.rankResult)
 /* h5. */
