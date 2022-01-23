@@ -915,3 +915,22 @@ exports.formDelete = async (req, res) => {
         message: '删除成功'
     })
 }
+/**
+ * 删除表单Log
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
+exports.formLogDelete = async (req, res) => {
+    const id = req.body.id;
+    const project = await FormLogModel.findById(id)
+    if (!project) {
+        return res.status(202).send({
+            message: '数据有误！'
+        })
+    }
+    const result = await project.deleteOne({_id: id})
+    res.status(200).send({
+        message: '删除成功'
+    })
+}
