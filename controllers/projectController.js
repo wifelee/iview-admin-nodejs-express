@@ -60,14 +60,29 @@ exports.onExportExcel = async (req, res)=>{
 
     //处理数据
     let arr = []
+    let sortData = [] //排序数组
     for(let i in obj) {
-
         let score = 0
         for(let j of obj[i]) {
             score = parseFloat(score + parseFloat(j['dScore']))
         }
         obj[i+'_total'] = parseFloat(100 - score)
-        arr = [...arr,...obj[i]]
+        sortData = [...sortData,{name:i,value:parseFloat(100 - score)}]
+
+    }
+    sortData.sort((obj1,obj2)=>{
+        const val1 = obj1.value;
+        const val2 = obj2.value;
+        if (val1 > val2) {
+            return -1;
+        } else if (val1 < val2) {
+            return 1;
+        } else {
+            return 0;
+        }
+    })
+    for(let i of sortData) {
+        arr = [...arr,...obj[i.name]]
     }
     let temp = ''
     let tempArr = []
