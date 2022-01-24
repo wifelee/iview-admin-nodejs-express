@@ -3,7 +3,7 @@ node_modules
 /dist
 /client
 package-lock.json
-
+/files
 /tests/e2e/videos/
 /tests/e2e/screenshots/
 /kunchen-admin
