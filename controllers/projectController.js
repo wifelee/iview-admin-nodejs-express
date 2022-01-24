@@ -559,7 +559,22 @@ exports.scoreDelete = async (req, res) => {
     })
 }
 
+const getDate = (timeStamp='',type)=>{
+    let d;
+    if(timeStamp) {
+         d = new Date(timeStamp)
+    }else {
+         d = new Date()
+    }
+    const year = d.getFullYear()
+    const month = d.getMonth() + 1
+    const date = d.getDate()
 
+    const monthResult = year + '-' + (month < 10 ? `0${month}` : month)
+    const dateResult = year + '-' + (month < 10 ? `0${month}` : month)  + '-' + (date < 10 ? `0${date}` : date)
+    console.log("mmmm",type === 'month' ? monthResult : dateResult)
+    return type === 'month' ? monthResult : dateResult
+}
 /**
  * H5新建项目
  * @param req
@@ -579,10 +594,7 @@ exports.formAdd = async (req, res) => {
     if (req.body.secondLevel === '') return res.status(500).send({
         message: '二级指标不能为空'
     })
-    const d = new Date()
-    const year = d.getFullYear()
-    const month = d.getMonth() + 1
-    const monthResult = year + '-' + (month < 10 ? `0${month}` : month)
+    const monthResult = getDate('','month')
     let score = 0.5
     if(req.body.firstLevel === '公共设施' && req.body.secondLevel === '灭火器放置标准' ) score = 1
     if(req.body.firstLevel === '长效机制' && req.body.secondLevel === '管理标准') score = 3
@@ -618,7 +630,7 @@ exports.formAdd = async (req, res) => {
     const stamp2 = new Date(new Date().setHours(0, 0, 0, 0) + 24 * 60 * 60 * 1000 - 1); //获取当天23:59:59的时间
     const logResult = await FormLogModel.find({
             month:monthResult,
-             role:req.body.role
+            role:req.body.role
         }
     )
     //有则关联到当日的_id
@@ -631,21 +643,34 @@ exports.formAdd = async (req, res) => {
             real_name: req.body.real_name || '-'
         })
         formId = result2._id
-
     }else {
-        if(logResult.length === 1 && req.body.role !== '护士长') {
-            return res.status(500).send({
-                message: '您本月已提交过该科室的评分表了'
-            })
-        }else if (logResult.length  === 2) {
+        console.log("getDate",getDate('','date'),getDate(logResult[0].created_at,'date'))
+        if(logResult.length === 1) {
+            if(req.body.role !== '护士长') {
+                if( getDate('','date') !== getDate(logResult[0].created_at,'date')){
+                    return res.status(500).send({
+                        message: '您本月已提交过该科室的评分表了'
+                    })
+                }
+            }else {
+                if( getDate('','date') !== getDate(logResult[0].created_at,'date')){
+                    const result2 = await FormLogModel.create({
+                        userId:req.body.userId,
+                        name: req.body.name,
+                        month:monthResult,
+                        role: req.body.role || '-',
+                        real_name: req.body.real_name || '-'
+                    })
+                    formId = result2._id
+                }
+            }
+        }else {
             return res.status(500).send({
                 message: '您本月已提交过该科室的评分表了'
             })
         }
         //有记录后就ID就是这条记录的_id
         formId = logResult[0]._id
-
-
     }
     // 计算得分
     const time = parseInt(req.body.time)
