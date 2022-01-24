@@ -7,6 +7,7 @@ var FormLogSchema = mongoose.Schema({
         real_name: String,
         totalScore: String,
         month:String,
+        userId:String,
     },
     {
         versionKey: false, // 不保存__v

@@ -624,6 +624,7 @@ exports.formAdd = async (req, res) => {
     //有则关联到当日的_id
     if(logResult.length === 0) {
         const result2 = await FormLogModel.create({
+            userId:req.body.userId,
             name: req.body.name,
             month:monthResult,
             role: req.body.role || '-',
@@ -712,7 +713,7 @@ exports.formList = async (req, res) => {
  * @returns {Promise<void>}
  */
 exports.formLogList = async (req, res) => {
-    const result = await FormLogModel.find();
+    const result = await FormLogModel.find({userId:req.body.userId});
     res.status(200).send(
         {
             data: result
