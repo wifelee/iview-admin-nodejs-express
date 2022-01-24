@@ -116,7 +116,7 @@ exports.onExportExcel = async (req, res)=>{
         .then(function(result) {
             return res.status(200).send({
                 message: '导出成功',
-                url:`/static/${fileName}`
+                url:`static/${fileName}`
                 // data: obj,
                 // tempArr:tempArr,
                 // temp:temp,
