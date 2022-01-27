@@ -13,7 +13,8 @@ var FormSchema = mongoose.Schema({
         formId:String,
         dScore:String,
         total:String,
-        role: String
+        role: String,
+        userId:String,
     },
     {
         versionKey: false, // 不保存__v

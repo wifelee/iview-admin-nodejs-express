@@ -659,40 +659,34 @@ exports.formAdd = async (req, res) => {
         })
         formId = result2._id
     }else {
-        console.log("getDate",getDate('','date'),getDate(logResult[0].created_at,'date'))
-        if(logResult.length === 1) {
-            if(req.body.role !== '护士长') {
-                if( getDate('','date') !== getDate(logResult[0].created_at,'date')){
-                    return res.status(500).send({
-                        message: '您本月已提交过该科室的评分表了'
-                    })
-                }
-            }else {
-                if( getDate('','date') !== getDate(logResult[0].created_at,'date')){
-                    const result2 = await FormLogModel.create({
-                        userId:req.body.userId,
-                        name: req.body.name,
-                        month:monthResult,
-                        role: req.body.role || '-',
-                        real_name: req.body.real_name || '-'
-                    })
-                    formId = result2._id
+            const isSubmitData = await FormModel.find({name:req.body.name,month:monthResult,role:req.body.role});
+            if(isSubmitData.length > 0 ) {
+                if(req.body.role !== '护士长') {
+                    if( getDate('','date') !== getDate(isSubmitData[0].created_at,'date')){
+                        return res.status(500).send({
+                            message: '您本月已提交过该科室的评分表了'
+                        })
+                    }
+
+                }else {
+                    const dateArr = isSubmitData.map(a=>getDate(a.created_at,'date'))
+                    // 当月仅可提交两次
+                    if(dateArr.length === 2) {
+                        if(!dateArr.include(getDate('','date'))){
+                            return res.status(500).send({
+                                message: '您本月已提交过该科室的评分表了'
+                            })
+                        }
+                    }
                 }
             }
-        }else {
-            return res.status(500).send({
-                message: '您本月已提交过该科室的评分表了'
-            })
-        }
         //有记录后就ID就是这条记录的_id
         formId = logResult[0]._id
     }
     // 计算得分
     const time = parseInt(req.body.time)
     let dScore = parseFloat(time * score)
-
     let total = 100
-
     if(dScore  > codeTotal ) {
         dScore = codeTotal
     }
@@ -700,6 +694,7 @@ exports.formAdd = async (req, res) => {
 
     //存进数据库
     const result = await FormModel.create({
+        userId:req.body.userId,
         name: req.body.name,
         type: req.body.type,
         firstLevel: req.body.firstLevel,
@@ -739,7 +734,8 @@ exports.formAdd = async (req, res) => {
  * @returns {Promise<void>}
  */
 exports.formList = async (req, res) => {
-    const result = await FormModel.find().sort({created_at: -1});
+    const result = await FormModel.find({userId:req.body.userId}).sort({created_at: -1});
+    console.log('userId',req.body.userId)
     res.status(200).send(
         {
             data: result
@@ -788,7 +784,6 @@ exports.adminFormLogList = async (req, res) => {
     param.role = new RegExp(req.body.role, 'i')
     param.real_name = new RegExp(req.body.real_name, 'i')
     param.month = new RegExp(req.body.month, 'i')
-    console.log('param',param)
     project = await FormLogModel.find({
         //模糊搜索的字段
         $and: [
@@ -847,7 +842,6 @@ exports.rankList = async (req, res) => {
     // const type = new RegExp(req.body.type, 'i')
     let monthResult = req.body.month || ''
     if(tools.isEmpty(monthResult)){
-
         // 没传月份默认查当月
         const d = new Date()
         const year = d.getFullYear()
