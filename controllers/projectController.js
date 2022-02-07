@@ -609,7 +609,8 @@ exports.formAdd = async (req, res) => {
     if (req.body.secondLevel === '') return res.status(500).send({
         message: '二级指标不能为空'
     })
-    const monthResult = getDate('','month')
+    // const monthResult = getDate('','month')
+    const monthResult = '2022-01'
     let score = 0.5
     if(req.body.firstLevel === '公共设施' && req.body.secondLevel === '灭火器放置标准' ) score = 1
     if(req.body.firstLevel === '长效机制' && req.body.secondLevel === '管理标准') score = 3
@@ -640,9 +641,6 @@ exports.formAdd = async (req, res) => {
         message: '问题次数不能为空'
     })
     let formId =''
-    //先判断是否当日已有数据输入
-    const stamp1 = new Date(new Date().setHours(0, 0, 0, 0)); //获取当天零点的时间
-    const stamp2 = new Date(new Date().setHours(0, 0, 0, 0) + 24 * 60 * 60 * 1000 - 1); //获取当天23:59:59的时间
     const logResult = await FormLogModel.find({
             month:monthResult,
             role:req.body.role
@@ -659,29 +657,53 @@ exports.formAdd = async (req, res) => {
         })
         formId = result2._id
     }else {
+        //
             const isSubmitData = await FormModel.find({name:req.body.name,month:monthResult,role:req.body.role});
             if(isSubmitData.length > 0 ) {
-                if(req.body.role !== '护士长') {
-                    if( getDate('','date') !== getDate(isSubmitData[0].created_at,'date')){
-                        return res.status(500).send({
-                            message: '您本月已提交过该科室的评分表了'
-                        })
-                    }
-
-                }else {
-                    const dateArr = isSubmitData.map(a=>getDate(a.created_at,'date'))
-                    // 当月仅可提交两次
-                    if(dateArr.length === 2) {
-                        if(!dateArr.include(getDate('','date'))){
+                //是否同一天
+                if( getDate('','date') !== getDate(isSubmitData[0].created_at,'date')){
+                    //不是同一天  护士长可以2次 内控员只有一次
+                    if(req.body.role !== '护士长') {
+                        // 同一科室不同的日期
                             return res.status(500).send({
                                 message: '您本月已提交过该科室的评分表了'
                             })
+                    }else {
+                        // 同一科室 是否有多条不同的日期
+
+                        const dateArr = [...new Set(isSubmitData.map(a=>getDate(a.created_at,'date')))]
+                        console.log('dateArr',dateArr)
+                        // 当月仅可提交两次
+                        if(dateArr.length >= 2) {
+                            if(!dateArr.includes(getDate('','date'))){
+                                return res.status(500).send({
+                                    message: '您本月已提交过该科室的评分表了'
+                                })
+                            }
+                        }else if(dateArr.length === 1){
+                            // 且不是同一天
+                            const result3 = await FormLogModel.create({
+                                userId:req.body.userId,
+                                name: req.body.name,
+                                month:monthResult,
+                                role: req.body.role || '-',
+                                real_name: req.body.real_name || '-'
+                            })
+                            formId = result3._id
+                        }else {
+                            //有记录后就ID就是这条记录的_id
+                            formId = logResult[0]._id
                         }
                     }
+                }else {
+                    //有记录后就ID就是这条记录的_id
+                    formId = logResult[0]._id
                 }
+            }else {
+                //有记录后就ID就是这条记录的_id
+                formId = logResult[0]._id
             }
-        //有记录后就ID就是这条记录的_id
-        formId = logResult[0]._id
+
     }
     // 计算得分
     const time = parseInt(req.body.time)
@@ -850,67 +872,91 @@ exports.rankList = async (req, res) => {
     }
 
     const param = { month:monthResult}
-    if(req.body.type) param.type = req.body.type
+    if(!tools.isEmpty(req.body.type)) param.type = req.body.type
+    const depart  = await projectModel.find();
+    const departName =[...new Set(depart.map(a=>a.name))]
+
     const project = await FormLogModel.find(param);
-    // 计算出每个log每个科室的总分
+    let arrResult = {}
+    const formList = []
+    let index = 0
+
+    // 构造分科室的数据
     for(let i of project) {
-        let kScore = 0
-        for(let j of await FormModel.find({formId:i._id})) {
-            kScore =parseFloat(kScore + parseFloat(j['dScore'] || 0))
+        index++
+        const form = await FormModel.find({formId:i._id});
+        formList.push(form)
+        const key = i.role+'_'+index
+        arrResult[key] = {}
+        for(let j of departName) {
+            arrResult[key][j] = form.filter(a=>a.name === j)
         }
-        i.totalScore =parseFloat(100 - parseFloat(kScore))
     }
+    let finalResult = {}
+    for(let i in arrResult) {
+        finalResult[i] = []
+        for(let j of departName) {
+            let obj= {}
+            if(arrResult[i][j].length > 0) {
+                let score = 0;
+                for(let k of arrResult[i][j]) {
+                    score = parseFloat(score + parseFloat(k['dScore']))
+                    obj['name'] = j
+                    obj['value'] = parseFloat(100 - score)
+                }
+                finalResult[i].push(obj)
+            }else {
+                obj['name'] = j
+                obj['value'] =100
+                finalResult[i].push(obj)
+            }
+        }
+    }
+    let data = []
+    for(let i of departName) {
+        let nTotal = ''
+        let hTotal = ''
+        for(let j in finalResult) {
+            const jName = j.split('_')[0]
+            if(jName === '内控员') {
 
-
-    let arr = []
-    // 判断是否每个科室是否只有一条数据
-    for(let i of [...project]) {
-        let lock = false
-            for(let j of arr) {
-                //相同科室放在一起
-                if(i.name === j.name) {
-                    if(i.role === j.role) {
-                        if(i.role ==='护士长') {
-                            j.totalScore = parseFloat((parseFloat(j.totalScore) + parseFloat(i.totalScore))/2)
-                            lock = true
-                        }
-                    }else {
-                        if(i.role ==='护士长') {
-                            j.htotalScore = i.totalScore
-                            j.ntotalScore = j.totalScore
-
+                nTotal = finalResult[j].filter(a=>a.name === i)[0].value
+            }else {
+                for(let h in finalResult) {
+                    const hName = h.split('_')[0]
+                    if(hName !== '内控员' && h !== j) {
+                        if(!tools.isEmpty(finalResult[h])){
+                            console.log('护士长',finalResult[h])
+                            hTotal = parseFloat(finalResult[j].filter(a=>a.name === i)[0].value + finalResult[h].filter(a=>a.name === i)[0].value) / 2
                         }else {
-                            j.htotalScore = j.totalScore
-                            j.ntotalScore = i.totalScore
+                            hTotal = finalResult[j].filter(a=>a.name === i)[0].value
                         }
                     }
-                    lock = true
                 }
             }
-            if(!lock)  arr = [...arr,
-                {
-                    'name':i.name,
-                    'month': i.month,
-                    'role': i.role,
-                    'real_name': i.real_name,
-                    'totalScore': i.totalScore,
-                    'htotalScore':i.totalScore,
-                    'ntotalScore':i.totalScore
-                }
-            ]
-
+        }
+        data.push({
+            name:i,
+            nTotal:parseFloat(nTotal * 0.4).toFixed(2),
+            hTotal:parseFloat(hTotal * 0.6).toFixed(2),
+            total:parseFloat(parseFloat(nTotal * 0.4) + parseFloat(hTotal * 0.6)).toFixed(2)
+        })
     }
-    arr = arr.map(a=>{
-        a.htotalScore = parseFloat(a.htotalScore * 0.4).toFixed(2)
-        a.ntotalScore = parseFloat(a.ntotalScore * 0.6).toFixed(2)
-        a.total =   parseFloat(parseFloat(a.ntotalScore) + parseFloat(a.htotalScore)).toFixed(2)
-        return a
+    data.sort((obj1,obj2)=>{
+        const val1 = parseFloat(obj1.total);
+        const val2 = parseFloat(obj2.total);
+        if (val1 > val2) {
+            return -1;
+        } else if (val1 < val2) {
+            return 1;
+        } else {
+            return 0;
+        }
     })
-    // 不止一条就算平均值
     res.status(200).send(
         {
-            count: arr.length,
-            data: arr
+            finalResult:finalResult,
+             data: data
         }
     )
 }
