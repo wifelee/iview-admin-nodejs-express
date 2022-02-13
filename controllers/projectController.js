@@ -609,8 +609,7 @@ exports.formAdd = async (req, res) => {
     if (req.body.secondLevel === '') return res.status(500).send({
         message: '二级指标不能为空'
     })
-    // const monthResult = getDate('','month')
-    const monthResult = '2022-01'
+    const monthResult = getDate('','month')
     let score = 0.5
     if(req.body.firstLevel === '公共设施' && req.body.secondLevel === '灭火器放置标准' ) score = 1
     if(req.body.firstLevel === '长效机制' && req.body.secondLevel === '管理标准') score = 3
